@@ -1,6 +1,6 @@
 <?php
 
-function omit($string) {
+function omit($string, $content = []) {
   $tags = explode('>', $string);
   echo oParse($tags);
 }
@@ -11,7 +11,6 @@ function oParse($tags) {
     return startTag($tag) . oParse($tags) . endTag($tag);
   else
     return startTag($tag) . endTag($tag);
-  
 }
 
 function startTag($str) { return '<' . parseId(parseClass($str)) . '>'; }
@@ -22,9 +21,13 @@ function tagOnly($str) { return preg_split('/[^\w]/', $str)[0]; }
 function oMult($s) { return ((strpos($s,'*')!==false) ? 
   intval(preg_replace('/[^0-9+]/','',$s)) : 1); }
 function parseAsterisk($s) { 
-  return implode('+', array_fill(0,oMult($s),preg_replace('/[0-9+\*]+/', '', $s)));
+  return implode('+', array_fill(0,oMult($s),preg_replace('/[0-9+\*]+/', '', $s)));}
+function parseContent($s,$content) {
+  return implode('+', array_map(function($c) use ($s) { return preg_replace('/[\$]/','',$s) .'{'.$c.'}'; },$content));
 }
 
-omit('div#wrapper>span.title>ul>li*3');
+omit('div#wrapper>span.title>ul>li$');
+echo parseContent('li$',['this','that','theother']);
+
 
 ?>
