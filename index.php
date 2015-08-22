@@ -7,10 +7,8 @@
 <body>
 
 <?php
-
 include 'omit.php';
-omit('div#wrapper>span>h1{This is my Title}+h2{not bad \'eh}+ul.list>li$', ['this','that','the other']);
-
+omit('div#wrapper>span>h1{This is my Title}+h2{not bad eh}+ul.list>li.this$', ['this','that','the other']);
 ?>
   
 </body>
