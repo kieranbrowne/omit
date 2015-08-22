@@ -9,7 +9,7 @@
 <?php
 
 include 'omit.php';
-omit('div#wrapper>span.title{Title}+ul>li*3');
+omit('div#wrapper>span>h1{This is my Title}+h2{not bad \'eh}+ul.list>li$', ['this','that','the other']);
 
 ?>
   
