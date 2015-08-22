@@ -6,11 +6,13 @@ function omit($string, $content = []) {
 }
 
 function oParse($tags) {
-  $tag = array_shift($tags); // pop tag at top of nest
-  return implode('',array_map(function($t) use ($tags) {
-    return startTag($t) . parseContent($t) . ((sizeof($tags)>0)?oParse($tags):'') . oTag($t)['end'];
-  },parsePlus(parseAsterisk($tag))));
+  $parts = parsePlus(parseAsterisk(array_shift($tags)));
+  $last = array_pop($parts);
+  return array_reduce($parts,
+    function ($carry, $item) use ($tags) { return $carry . toHtml($item); } )
+    . startTag($last) . ((sizeof($tags)>0)?oParse($tags):'') .oTag($last)['end']; 
 }
+function toHtml($tag) { return startTag($tag) . parseContent($tag) . oTag($tag)['end']; }
 
 function startTag($str) { return '<' . parseId(parseClass($str)) . '>'; }
 //function endTag($str) { return '</' . tagOnly($str) . '>'; }
@@ -27,7 +29,5 @@ function oContent($s,$content) {
 function parseContent($s) { preg_match('~{(.*?)}~',$s, $out);
   return ((sizeof($out)>0) ? $out[1] : ''); }
 function oTag($t) { return array( 'name' => tagOnly($t), 'id' => '', 'class' => '', 'attr' => '', 'content' => '', 'start' => '', 'end' => '</'.tagOnly($t).'>'); }
-
-
 
 ?>
