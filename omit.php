@@ -8,12 +8,12 @@ function omit($string, $content = []) {
 function oParse($tags) {
   $tag = array_shift($tags); // pop tag at top of nest
   return implode('',array_map(function($t) use ($tags) {
-    return startTag($t) . parseContent($t) . ((sizeof($tags)>0)?oParse($tags):'') . endTag($t);
+    return startTag($t) . parseContent($t) . ((sizeof($tags)>0)?oParse($tags):'') . oTag($t)['end'];
   },parsePlus(parseAsterisk($tag))));
 }
 
 function startTag($str) { return '<' . parseId(parseClass($str)) . '>'; }
-function endTag($str) { return '</' . tagOnly($str) . '>'; }
+//function endTag($str) { return '</' . tagOnly($str) . '>'; }
 function parseId($str) { return str_replace('#', ' id=', $str); }
 function parseClass($str) { return str_replace('.', ' class=', $str); }
 function tagOnly($str) { return preg_split('/[^\w]/', $str)[0]; }
@@ -26,11 +26,8 @@ function oContent($s,$content) {
   return implode('+', array_map(function($c) use ($s) { return preg_replace('/[\$]/','',$s) .'{'.$c.'}'; },$content));}
 function parseContent($s) { preg_match('~{(.*?)}~',$s, $out);
   return ((sizeof($out)>0) ? $out[1] : ''); }
+function oTag($t) { return array( 'name' => tagOnly($t), 'id' => '', 'class' => '', 'attr' => '', 'content' => '', 'start' => '', 'end' => '</'.tagOnly($t).'>'); }
 
 
-omit('div#wrapper>span.title{Title}+ul>li*3');
 
-assert(parsePlus('span.class{this}+ul') === ['span.class{this}','ul'], "parsePlus");
-assert(parseContent('span.class{this is the content}') === 'this is the content', "parseContent");
-assert(parsePlus(parseAsterisk('span.title{Title}+ul')) === ['span.title{Title}','ul']);
 ?>
