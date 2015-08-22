@@ -36,5 +36,5 @@ function oTag($t) {
   ); 
 }
 function oHas($tag,$str) { return ((strpos($tag,$str)!==false)?true:false); }
-
+function oFunc($t) { return 
 ?>
