@@ -4,14 +4,14 @@ function omit($string, $content = []) {
   $tags = explode('>', $string);
   echo oParse($tags);
 
-  function oParse($tags) use ($content) {
-    $parts = parsePlus(parseAsterisk(array_shift($tags)));
-    $last = array_pop($parts);
-    return array_reduce($parts,
-      function ($carry, $item) use ($tags) { return $carry . toHtml($item); } ) . oTag($last)['start'] . parseContent($last) . ((sizeof($tags)>0)?oParse($tags):'') .oTag($last)['end']; 
-  }
 }
 
+function oParse($tags) {
+  $parts = parsePlus(parseAsterisk(array_shift($tags)));
+  $last = array_pop($parts);
+  return array_reduce($parts,
+    function ($carry, $item) use ($tags) { return $carry . toHtml($item); } ) . oTag($last)['start'] . parseContent($last) . ((sizeof($tags)>0)?oParse($tags):'') .oTag($last)['end']; 
+}
 
 function toHtml($tag) { return oTag($tag)['start'] . parseContent($tag) . oTag($tag)['end']; }
 
