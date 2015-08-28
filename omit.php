@@ -1,11 +1,12 @@
 <?php
 
 function omit($string, $content = []) {
-  $tags = explode('>', $string);
-  echo oParse($tags,$content);
+  echo implode('',array_map(function($x) use ($content) { 
+    $tags = explode('>', $x);
+    return oParse($tags, $content); }, parseParentheses($string)));
 }
 
-function oParse($tags,$content) {
+function oParse($tags,$content=[]) {
   $parts = explode('+',(oFunc(oContent(parseAsterisk(array_shift($tags)),$content),$content)));
   $last = array_pop($parts);
   return array_reduce($parts,
@@ -15,10 +16,6 @@ function oParse($tags,$content) {
 function toHtml($tag) { return startTag($tag) . oGet($tag) . endTag($tag); }
 function startTag($str) { return '<' . oTag($str)['name'] . (ohas($str,'#')?' id="'.oTag($str)['id'].'"':'') .(ohas($str,'.')?' class="'.oTag($str)['class'].'"':'') . '>'; }
 function endTag($str) { return '</' . oTag($str)['name'] . '>'; }
-//function parseId($str) { return str_replace('#', ' id=', $str); }
-//function parseClass($str) { return str_replace('.', ' class=', $str); }
-//function tagOnly($str) { return preg_split('/[^[:alnum:]]+/', $str)[0]; }
-//function idOnly($str) { return preg_split('/#/', $str)[1]; }
 function oMult($s) { return ((strpos($s,'*')!==false) ? intval(preg_replace('/[^0-9+]/','',$s)) : 1); }
 //function parsePlus($s) { return explode('+',$s); }
 function parseAsterisk($s) { return implode('+', array_fill(0,oMult($s),preg_replace('/^[*]+/', '', $s)));}
@@ -39,6 +36,23 @@ function oFunc($t,$content) { return ((strpos($t,'|')!==false)?implode('+',array
 function strInside($str,$start,$end){
   return ((strpos($str,str_replace('\\','',$start))!==false)?preg_split('/$end/',preg_split('/'.$start.'/',$str)[1])[0]:'fail');}
 
-//echo preg_replace('/\|([^\|]+)\|/','','div|this|that');
-//echo oFunc('div|getUrl|',[['url'=>'www.github.com']]);
+function parseParentheses($str) {
+  if(strpos($str,'(') !== false) {
+    $open = strpos($str,'(');
+    $closed = strrpos($str,')');
+    $head = substr($str, 0, $open);
+    $midd = substr($str, $open+1, $closed-$open-1);
+    $tail = substr($str, $closed,-1);
+    return (($tail !== '')?array_merge([$head],parseParentheses($midd),[$tail]):array_merge([$head],parseParentheses($midd)));
+  }
+  else {return [$str];}
+}
+
+echo '<br><br>';
+//var_dump(array_map(function ($x) { 
+//  $tags = explode('>', $x);
+//  return oParse($tags); }, parseParentheses('this>ul>(li>a{this})')));
+//echo "this test:";
+omit('this>ul>(li>a{this})');
+omit('div(this)');
 ?>
