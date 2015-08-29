@@ -46,33 +46,34 @@ function parseParentheses($str) {
   else {return [$str];}
 }
 
+function occurences($char,$str) { 
+  return array_values(array_filter(array_map(function($x,$y)use($char){return (($x==$char)?$y:false);},str_split($str),array_keys(str_split($str)))));
+}
 function mapIndexes($list,$str) {
   return array_combine($list,array_map(function($sub) use ($str) { return strpos($str,$sub);},$list)); }
 function firstOf($list,$str) {
-  $array = array_filter(mapIndexes($list,$str));
-  var_dump($array);
-  asort($array);
+  $array = array_filter(mapIndexes($list,$str), function($x){return $x !== FALSE;}); asort($array);
   return key($array);
 }
 
+function pre($str,$char){return substr($str,0,strpos($str,$char));}
+function post($str,$char){return substr($str,strpos($str,$char)+1);}
+function oMatch($str,$char,$match) {
+  if(firstOf([$char,$match],post($str,$char)) === $char)
+    return oMatch(substr_replace($str,'',occurences('(',$str)[1],occurences(')',$str)[1]),$char,$match) + strpos($str,$match)+1;
+  else return strpos($str,$match);
+}
 function parseNest($str) {
   switch (firstOf(['(','>'],$str)) {
-  case '(': return ___ break;
-  case '>': return ___ break;
-  default: return [$str]; break;
+    case '(': return array_merge([pre($str,'(')],parseNest(post($str,'>'))); break;
+    case '>': return array_merge([pre($str,'>')],parseNest(post($str,'>'))); break;
+    default: return [$str]; break;
   }
 }
-//var_dump(array_map(function ($x) { 
-//  $tags = explode('>', $x);
-//  return oParse($tags); }, parseParentheses('this>ul>(li>a{this})')));
-//echo "this test:";
-//omit('this>ul>(li>a{this})');
-//omit('div>(this)+ul>(li>a)');
-//var_dump(parseNest('this>ul>(li>a{this})'));
-$tmp = mapIndexes(['(','>'],'thithat(');
-//array_map('asort',$tmp);
-asort($tmp);
-print_r(key($tmp));
-print_r(firstOf(['(','>','t','h','z'],'that('));
 echo '<br><br>';
+echo pre('this>that>','>');
+echo post('this>that>','>');
+$test = '   ((this)(this)that)';
+echo $test[oMatch($test,'(',')')].' at '.oMatch($test,'(',')');
+print_r(occurences('(',$test));
 ?>

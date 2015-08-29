@@ -19,7 +19,7 @@ $content2 = [
 
 function getUrl($item) { return $item['url']; }
 
-omit('div.urls>ul>(li>a)',$content2);
+omit('div.urls>ul>li|getUrl|',$content2);
 ?>
   
 </body>
