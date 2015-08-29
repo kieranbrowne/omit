@@ -58,22 +58,44 @@ function firstOf($list,$str) {
 
 function pre($str,$char){return substr($str,0,strpos($str,$char));}
 function post($str,$char){return substr($str,strpos($str,$char)+1);}
-function oMatch($str,$char,$match) {
-  if(firstOf([$char,$match],post($str,$char)) === $char)
-    return oMatch(substr_replace($str,'',occurences('(',$str)[1],occurences(')',$str)[1]),$char,$match) + strpos($str,$match)+1;
-  else return strpos($str,$match);
+//function oMatch($str,$char,$match,$offset=0) {
+  //if(firstOf([$char,$match],post($str,$char)) === $char)
+    //return oMatch(substr_replace($str,'',occurences('(',$str)[1],oMatch(),$char,$match) + strpos($str,$match)+1;
+  //else return strpos($str,$match);
+//}
+function flip($char){
+  switch ($char) {
+  case '(': return ')'; break;
+  case ')': return '('; break;
+  case '[': return ']'; break;
+  case '{': return '}'; break;
+  }
 }
+function match($str,$char) {
+  $depth = 0;
+  $i = 0;
+  foreach (str_split($str) as $s) {
+    if(($depth == 1) && ($s == flip($char))) return $i;
+    if($s == $char) $depth++;
+    if($s == flip($char)) $depth--;
+    $i++;
+  }
+}
+function inParen($str) {
+  return substr($str,strpos($str,'(')+1,match(substr($str,strpos($str,'(')),'(')-strpos($str,'(')+3); }
+  
 function parseNest($str) {
   switch (firstOf(['(','>'],$str)) {
-    case '(': return array_merge([pre($str,'(')],parseNest(post($str,'>'))); break;
+  case '(': 
+    return array_merge([pre($str,'(')],parseNest(inParen($str)),parseNest(substr($str,strrpos($str,')')))); break;
     case '>': return array_merge([pre($str,'>')],parseNest(post($str,'>'))); break;
     default: return [$str]; break;
   }
 }
 echo '<br><br>';
-echo pre('this>that>','>');
-echo post('this>that>','>');
-$test = '   ((this)(this)that)';
-echo $test[oMatch($test,'(',')')].' at '.oMatch($test,'(',')');
-print_r(occurences('(',$test));
+$test = 'div>(this>this)that ';
+//echo $test[match($test,'(')].' at '.match($test,'(');
+echo inParen($test,'(');
+
+print_r(array_filter(parseNest($test)));
 ?>
