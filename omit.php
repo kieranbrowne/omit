@@ -1,9 +1,7 @@
 <?php
 
 function omit($string, $content = []) {
-  echo implode('',array_map(function($x) use ($content) { 
-    $tags = explode('>', $x);
-    return oParse($tags, $content); }, parseParentheses($string)));
+  echo oParse(parseNest($string),$content);
 }
 
 function oParse($tags,$content=[]) {
@@ -48,11 +46,33 @@ function parseParentheses($str) {
   else {return [$str];}
 }
 
-echo '<br><br>';
+function mapIndexes($list,$str) {
+  return array_combine($list,array_map(function($sub) use ($str) { return strpos($str,$sub);},$list)); }
+function firstOf($list,$str) {
+  $array = array_filter(mapIndexes($list,$str));
+  var_dump($array);
+  asort($array);
+  return key($array);
+}
+
+function parseNest($str) {
+  switch (firstOf(['(','>'],$str)) {
+  case '(': return ___ break;
+  case '>': return ___ break;
+  default: return [$str]; break;
+  }
+}
 //var_dump(array_map(function ($x) { 
 //  $tags = explode('>', $x);
 //  return oParse($tags); }, parseParentheses('this>ul>(li>a{this})')));
 //echo "this test:";
-omit('this>ul>(li>a{this})');
-omit('div(this)');
+//omit('this>ul>(li>a{this})');
+//omit('div>(this)+ul>(li>a)');
+//var_dump(parseNest('this>ul>(li>a{this})'));
+$tmp = mapIndexes(['(','>'],'thithat(');
+//array_map('asort',$tmp);
+asort($tmp);
+print_r(key($tmp));
+print_r(firstOf(['(','>','t','h','z'],'that('));
+echo '<br><br>';
 ?>
