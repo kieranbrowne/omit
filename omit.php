@@ -63,14 +63,7 @@ function post($str,$char){return substr($str,strpos($str,$char)+1);}
     //return oMatch(substr_replace($str,'',occurences('(',$str)[1],oMatch(),$char,$match) + strpos($str,$match)+1;
   //else return strpos($str,$match);
 //}
-function flip($char){
-  switch ($char) {
-  case '(': return ')'; break;
-  case ')': return '('; break;
-  case '[': return ']'; break;
-  case '{': return '}'; break;
-  }
-}
+function flip($char){ return ['('=>')',')'=>'(','['=>']','{'=>'}'][$char];}
 function match($str,$char) {
   $depth = 0;
   $i = 0;
@@ -82,20 +75,21 @@ function match($str,$char) {
   }
 }
 function inParen($str) {
-  return substr($str,strpos($str,'(')+1,match(substr($str,strpos($str,'(')),'(')-strpos($str,'(')+3); }
+  return substr($str,strpos($str,'(')+1,match($str,'(')-strpos($str,'(')-1); }
   
 function parseNest($str) {
   switch (firstOf(['(','>'],$str)) {
   case '(': 
-    return array_merge([pre($str,'(')],parseNest(inParen($str)),parseNest(substr($str,strrpos($str,')')))); break;
-    case '>': return array_merge([pre($str,'>')],parseNest(post($str,'>'))); break;
+    return array_filter(array_merge([pre($str,'(')],parseNest(inParen($str)),parseNest(substr($str,match($str,'(')+1)))); break;
+    case '>': return array_filter(array_merge([pre($str,'>')],parseNest(post($str,'>')))); break;
     default: return [$str]; break;
   }
 }
 echo '<br><br>';
 $test = 'div>(this>this)that ';
 //echo $test[match($test,'(')].' at '.match($test,'(');
-echo inParen($test,'(');
 
-print_r(array_filter(parseNest($test)));
+$str='div>(this>that)+span';
+print_r(parseNest($str));
+echo 'test of inParen: '.inParen('this(that()this)that()');
 ?>
