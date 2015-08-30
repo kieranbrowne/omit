@@ -1,7 +1,7 @@
 <?php
 
 function omit($string, $content = []) {
-  echo oParse(parseNest($string),$content);
+  echo oParse(explode('>',$string),$content);
 }
 
 function oParse($tags,$content=[]) {
@@ -78,18 +78,17 @@ function inParen($str) {
   return substr($str,strpos($str,'(')+1,match($str,'(')-strpos($str,'(')-1); }
   
 function parseNest($str) {
-  switch (firstOf(['(','>'],$str)) {
+  switch (firstOf(['(','>','+'],$str)) {
   case '(': 
-    return array_filter(array_merge([pre($str,'(')],parseNest(inParen($str)),parseNest(substr($str,match($str,'(')+1)))); break;
-    case '>': return array_filter(array_merge([pre($str,'>')],parseNest(post($str,'>')))); break;
-    default: return [$str]; break;
+    return startTag(pre($str,'(')).parseNest(inParen($str)).parseNest(substr($str,match($str,'(')+1)).endTag(pre($str,'(')); break;
+    case '>': return startTag(pre($str,'>')).parseNest(post($str,'>')).endTag(pre($str,'>')); break;
+    case '+': return startTag(pre($str,firstOf(['(','>','+'],substr($str,1)))).endTag(pre($str,firstOf(['(','>','+'],substr($str,1)))).parseNest(post($str,firstOf(['(','>','+'],substr($str,1)))); break;
+    default: return startTag($str).endTag($str); break;
   }
 }
 echo '<br><br>';
-$test = 'div>(this>this)that ';
 //echo $test[match($test,'(')].' at '.match($test,'(');
 
-$str='div>(this>that)+span';
-print_r(parseNest($str));
+print_r(parseNest('div>span(this>that)span+spin>this'));
 echo 'test of inParen: '.inParen('this(that()this)that()');
 ?>
