@@ -2,8 +2,12 @@
 
 include 'omit.php';
 
-//assert(parseContent('span.class{this is the content}') === 'this is the content', "parseContent");
-//assert(parsePlus(parseAsterisk('span.title{Title}+ul')) === ['span.title{Title}','ul']);
-assert(strInside('this|func|that','\|','\|') === 'func');
+//guess section
+assert(contSect('this>that|fn|') === 'that|fn|');
+assert(contSect('(this>that|fn|)') === 'this>that|fn|');
+assert(contSect('this(this|fn|>that|fn|)') === 'this|fn|>that|fn|');
+assert(contSect('this(this|fn|+that|fn|)') === 'this|fn|');
 
+assert(contSect('this>that$$') === 'that$$');
+assert(contSect('(this>that$$)') === 'this>that$$');
 ?>
