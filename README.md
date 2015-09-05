@@ -7,7 +7,7 @@ include 'omit.php';
 
 $content1 = ['this','that','the other'];
 
-omit('div#wrapper>span>h1{This is my Title}+h2{not bad eh}+ul.list>li.this$', $content1);
+omit('div#wrapper>span>h1{This is my Title}+h2{not bad eh}+ul.list>li.item$', $content1);
 ```
 produces:
 ```html
@@ -16,9 +16,9 @@ produces:
     <h1>This is my Title</h1>
     <h2>not bad eh</h2>
     <ul class="list">
-      <li class="this">this</li>
-      <li class="this">that</li>
-      <li class="this">the other</li>
+      <li class="item">this</li>
+      <li class="item">that</li>
+      <li class="item">the other</li>
     </ul>
   </span>
 </div>
@@ -31,15 +31,20 @@ $content2 = [
   ['title' => 'Stack Overflow', 'url' => 'www.stackoverflow.com']];
 
 function getUrl($item) { return $item['url']; }
+function getTitle($item) { return $item['title']; }
 
-omit('div.urls>ul>li|getUrl|',$content2);
+omit('div.urls>ul>(li>a[href=|getUrl|]|getTitle|)',$content2);
 ```
 produces:
 ```html
 <div class="urls">
   <ul>
-    <li class="github">www.github.com</li>
-    <li class="stackoverflow">www.stackoverflow.com</li>
+    <li>
+      <a class="github" href="http://www.github.com">Github</a>
+    </li>
+    <li>
+      <a class="stackoverflow" href="http://www.stackoverflow.com">Stack Overflow</a>
+    </li>
   </ul>
 </div>
 ```
@@ -47,10 +52,41 @@ produces:
 ###Syntax 
 Omit uses a variation on [Emmet syntax](http://docs.emmet.io/abbreviations/syntax/).
 
-The major differences are as follows:
-- `$` is used to inject the content from the given array not for numbering posts.
+###Injecting Content
+- `$$` is used to inject the content from the given array not for numbering posts.
+```php
+$data = ['this',that','the other'];
+omit('ul>li$$',$data);
+```
+produces:
+```html
+<ul>
+  <li>this</li>
+  <li>that</li>
+  <li>the other</li>
+</ul>
+```
 - Strings between `|` characters are run as functions on the given array. 
 ```php
-omit('ul>(li>a|the_permalink|)', $wp-posts);
+$data = ['this',that','the other'];
+omit('ul>li|strtoupper|',$data);
 ```
+produces:
+```html
+<ul>
+  <li>THIS</li>
+  <li>THAT</li>
+  <li>THE OTHER</li>
+</ul>
+```
+
+###Wordpress Example
+```php
+include 'omit.php'; 
+
+$posts = array_map(function($x) { return $x->ID; }, get_posts(['post_type'=>'news']));
+
+omit('div.widget>h3{My Widget}+ul>(li>a[href=|get_permalink|]|get_the_title|)',$posts);
+```
+
 
