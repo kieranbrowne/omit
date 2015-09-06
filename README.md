@@ -55,7 +55,7 @@ Omit uses a variation on [Emmet syntax](http://docs.emmet.io/abbreviations/synta
 ###Injecting Content
 - `$$` is used to inject the content from the given array not for numbering posts.
 ```php
-$data = ['this',that','the other'];
+$data = ['this','that','the other'];
 omit('ul>li$$',$data);
 ```
 produces:
@@ -68,7 +68,7 @@ produces:
 ```
 - Strings between `|` characters are run as functions on the given array. 
 ```php
-$data = ['this',that','the other'];
+$data = ['this','that','the other'];
 omit('ul>li|strtoupper|',$data);
 ```
 produces:

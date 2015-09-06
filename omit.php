@@ -124,5 +124,4 @@ function parseNest($str,$c) {
   default: return startTag($str).endTag($str); break;
   }
 }
-echo '<br><br>';
 ?>
