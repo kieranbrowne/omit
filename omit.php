@@ -5,12 +5,19 @@ function omit($string, $content = []) {
 }
 
 function startTag($str) { return (strlen($str)!==0?'<' . oTag($str)['name'] . (ohas($str,'#')?' id="'.oTag($str)['id'].'"':'') .(ohas($str,'.')?' class="'.oTag($str)['class'].'"':'') .(ohas($str,'[')?' '.oTag($str)['attr']:''). '>'.oTag($str)['content']:''); }
+
 function endTag($str) { return '</' . oTag($str)['name'] . '>'; }
+
 function oMult($s) { return ((strpos($s,'*')!==false) ? intval(preg_replace('/[^0-9+]/','',$s)) : 1); }
+
 function parseAsterisk($s) { return implode('+', array_fill(0,oMult($s),preg_replace('/^[*]+/', '', $s)));}
-function oContent($s,$content) { return ((strpos($s,'$')!==false)?implode('+', array_map(function($c) use ($s) { return preg_replace('/[\$]/','',$s) .'{'.$c.'}'; },$content)):$s);}
+
+function oContent($s,$content) { return ((strpos($s,'$')!==false)?implode('+', array_map(function($c) use ($s) { return preg_replace('/[\$]/','',$s) .'{'.$c.'}'; }
+,$content)):$s);}
+
 function oGet($str,$start='{',$end='}') {
   return ((strpos($str,str_replace('\\','',$start))!==false)?preg_split('/'.$end.'/',preg_split('/'.$start.'/',$str)[1])[0]:'');}
+
 function oTag($t) { 
   preg_match_all("/\[([^\]]*)\]/", $t, $attrs);
   return array( 
@@ -21,6 +28,7 @@ function oTag($t) {
   'content' => oGet(preg_replace('/\[([^\]]*)\]/','',$t)), 
   ); 
 }
+
 function oHas($tag,$str) { return ((strpos($tag,$str)!==false)?true:false); }
 
 function contSect($str){
@@ -45,9 +53,9 @@ function contSect($str){
     else $ans = array_values(array_filter(explode('>',$str),
       function($item) { return oHas($item,'$$');}))[0];
     return $ans;
-
   }
 }
+
 function oFunc($t,$content) {
   if (oHas($t,'|')) {
     preg_match_all('/\|([^\|]+)\|/',$t, $funcs);
@@ -84,16 +92,21 @@ function parseParentheses($str) {
 function occurences($char,$str) { 
   return array_values(array_filter(array_map(function($x,$y)use($char){return (($x==$char)?$y:false);},str_split($str),array_keys(str_split($str)))));
 }
+
 function mapIndexes($list,$str) {
   return array_combine($list,array_map(function($sub) use ($str) { return strpos($str,$sub);},$list)); }
+
 function firstOf($list,$str) {
   $array = array_filter(mapIndexes($list,$str), function($x){return $x !== FALSE;}); asort($array);
   return key($array);
 }
 
 function pre($str,$char){return (oHas($str,$char)?substr($str,0,strpos($str,$char)):'');}
+
 function post($str,$char){return (oHas($str,$char)?substr($str,strpos($str,$char)+strlen($char)):'');}
+
 function flip($char){ return ['('=>')',')'=>'(','['=>']','{'=>'}'][$char];}
+
 function match($str,$char) {
   $depth = 0; $i = 0;
   foreach (str_split($str) as $s) {
@@ -103,9 +116,10 @@ function match($str,$char) {
     $i++;
   }
 }
+
 function inParen($str) {
   return ((oHas($str,'(')&&oHas($str,')'))?substr($str,strpos($str,'(')+1,match($str,'(')-strpos($str,'(')-1):$str); }
-  
+
 function parseNest($str,$c) {
   if(oHas($str,'|')) return parseNest(oFunc($str,$c),$c);
   if(oHas($str,'$$')) return parseNest(oFunc($str,$c),$c);
@@ -124,4 +138,5 @@ function parseNest($str,$c) {
   default: return startTag($str).endTag($str); break;
   }
 }
+
 ?>
