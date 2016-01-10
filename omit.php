@@ -1,9 +1,23 @@
 <?php
 
-function omit($string, $content = []) {
-  echo parseNest($string,$content);
+function omit($oStr, $content = []) {
+  return parseNest($oStr,$content);
 }
 
+function O($oStr, $content = []) {
+  return omit($oStr,$content);
+}
+
+/*
+ * return a mapable omit function
+ */
+function ofn($oStr) {
+  return function ($content = []) use ($oStr) {
+    return omit($oStr, $content);
+  };
+}
+
+/////////////////////////
 function startTag($str) { return (strlen($str)!==0?'<' . oTag($str)['name'] . (ohas($str,'#')?' id="'.oTag($str)['id'].'"':'') .(ohas($str,'.')?' class="'.oTag($str)['class'].'"':'') .(ohas($str,'[')?' '.oTag($str)['attr']:''). '>'.oTag($str)['content']:''); }
 
 function endTag($str) { return '</' . oTag($str)['name'] . '>'; }
@@ -21,19 +35,19 @@ function oGet($str,$start='{',$end='}') {
 function oTag($t) { 
   preg_match_all("/\[([^\]]*)\]/", $t, $attrs);
   return array( 
-  'name' => preg_split('/[^[:alnum:]]+/', $t)[0], 
-  'id' => oGet($t,'#','\W'), 
-  'class' => oGet($t,'\.','\W'), 
-  'attr' => implode(' ',array_map(function($x){return pre($x,'=').'="'.str_replace('}','',str_replace('{','',post($x,'='))).'"';},$attrs[1])), 
-  'content' => oGet(preg_replace('/\[([^\]]*)\]/','',$t)), 
+    'name' => preg_split('/[^[:alnum:]]+/', $t)[0], 
+    'id' => oGet($t,'#','\W'), 
+    'class' => oGet($t,'\.','\W'), 
+    'attr' => implode(' ',array_map(function($x){return pre($x,'=').'="'.str_replace('}','',str_replace('{','',post($x,'='))).'"';},$attrs[1])), 
+    'content' => oGet(preg_replace('/\[([^\]]*)\]/','',$t)), 
   ); 
 }
 
 function oHas($tag,$str) { return ((strpos($tag,$str)!==false)?true:false); }
 
 function contSect($str){
-  if(oHas($str,'|')) {
-    preg_match_all('/\|([^\|]+)\|/',$str, $funcs);
+  if(oHas($str,'%')) {
+    preg_match_all('/\%([^\%]+)\%/',$str, $funcs);
     $funcs = $funcs[0];
     $ans = $str;
     if(oHas($str,'(')) {
@@ -57,14 +71,14 @@ function contSect($str){
 }
 
 function oFunc($t,$content) {
-  if (oHas($t,'|')) {
-    preg_match_all('/\|([^\|]+)\|/',$t, $funcs);
+  if (oHas($t,'%')) {
+    preg_match_all('/\%([^\%]+)\%/',$t, $funcs);
     $cs = contSect($t);
     $out = array_fill(0,sizeof($content),$cs);
     foreach($funcs[0] as $func) {
       $out = array_map(function($item,$new) use ($func) {
         return str_replace($func,'{'.$new.'}',$item);
-      },$out,array_map(oGet($func,'\|','\|'),$content));
+      },$out,array_map(oGet($func,'\%','\%'),$content));
     }
     return pre($t,$cs).implode('+',$out).post($t,$cs);
   } else if (oHas($t,'$$')) {
@@ -75,6 +89,40 @@ function oFunc($t,$content) {
     },$content,$out);
     return pre($t,$cs).implode('+',$out).post($t,$cs);
   } else return ($t);
+}
+
+function oFuncPrime($t, $content = []) {
+  if (oHas($t,'%')) {
+    preg_match('/\%([^\%]+)\%/',$t, $f);
+    return oFuncPrime(str_replace($f[0],
+      expandFns((string)$f[1], $content)
+      ,$t));
+  } else return $t;
+}
+
+function expandFns($str, $content = []) {
+  $parts = explode('.',$str);
+  $last = array_pop($parts);
+
+  /* if (oHas($last,'$')) return expandVars($last, $content); */
+
+  if (count($parts) > 0)
+    return call_user_func($last,expandFns(implode('.',$parts)));
+  else return call_user_func($last);
+}
+
+function expandVars($str, $content = []) {
+  if (($str) == '$$') return $content[0];
+  else $key = str_replace('$','',$str);
+
+  try {
+    return '';
+    /* return $content[$key]; */
+  } catch (Exception $e) {
+    return '';
+    /* return get_object_vars($content)[$key]; */
+  }
+  return '';
 }
 
 function parseParentheses($str) {
@@ -121,19 +169,19 @@ function inParen($str) {
   return ((oHas($str,'(')&&oHas($str,')'))?substr($str,strpos($str,'(')+1,match($str,'(')-strpos($str,'(')-1):$str); }
 
 function parseNest($str,$c) {
-  if(oHas($str,'|')) return parseNest(oFunc($str,$c),$c);
-  if(oHas($str,'$$')) return parseNest(oFunc($str,$c),$c);
+  if(oHas($str,'%')) return parseNest(oFuncPrime($str,$c),$c);
+  if(oHas($str,'$$')) return parseNest(oFuncPrime($str,$c),$c);
   switch (firstOf(['(','>','+'],$str)) {
   case '(': 
-    if(oHas(pre($str,'('),'|')) return parseNest(oFunc( pre($str,'('),$c),$c);
+    if(oHas(pre($str,'('),'%')) return parseNest(oFuncPrime( pre($str,'('),$c),$c);
     return startTag(pre($str,'(')).parseNest(inParen($str),$c).parseNest(substr($str,match($str,'(')+1),$c).endTag(pre($str,'(')); break;
 
   case '>': 
-    if(oHas(pre($str,'>'),'|')) return parseNest(oFunc( pre($str,'>'),$c),$c);
+    if(oHas(pre($str,'>'),'%')) return parseNest(oFuncPrime( pre($str,'>'),$c),$c);
     return startTag(pre($str,'>')).parseNest(post($str,'>'),$c).endTag(pre($str,'>')); break;
 
   case '+': 
-    if(oHas(pre($str,firstOf(['(','>','+'],substr($str,1))) ,'|')) return parseNest(oFunc(pre($str,firstOf(['(','>','+'],substr($str,1))) ,$c),$c);
+    if(oHas(pre($str,firstOf(['(','>','+'],substr($str,1))) ,'%')) return parseNest(oFuncPrime(pre($str,firstOf(['(','>','+'],substr($str,1))) ,$c),$c);
     return startTag(pre($str,firstOf(['(','>','+'],substr($str,1)))).endTag(pre($str,firstOf(['(','>','+'],substr($str,1)))).parseNest(post($str,firstOf(['(','>','+'],substr($str,1))),$c); break;
   default: return startTag($str).endTag($str); break;
   }

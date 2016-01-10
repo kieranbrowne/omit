@@ -11,7 +11,7 @@ include 'omit.php';
 
 $content1 = ['this','that','the other'];
 
-omit('div#wrapper>span>h1{This is my Title}+h2{not bad eh}+ul.list>li.this$$', ['this','that','the other']);
+echo omit('div#wrapper>span>h1{This is my Title}+h2{not bad eh}+ul.list>li.this$$', ['this','that','the other']);
 
 $content2 = [
   ['title' => 'Github', 'url' => 'http://www.github.com'],
@@ -20,7 +20,15 @@ $content2 = [
 function getUrl($item) { return $item['url']; }
 function getTitle($item) { return $item['title']; }
 
-omit('div.urls>ul>(li>a[href=|getUrl|]|getTitle|)',$content2);
+echo omit('div.urls>ul>(li>a[href=|getUrl|]|getTitle|)',$content2);
+?>
+
+
+<?
+$post = ofn('div.this>span$$');
+
+echo $post(['this','that']);
+
 ?>
   
 </body>
