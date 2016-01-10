@@ -1,7 +1,10 @@
 <?php
 
 function omit($oStr, $content = []) {
-  return parseNest($oStr,$content);
+  if(!is_object($content))
+    return parseNest($oStr,(array) $content);
+  else 
+    return parseNest($oStr,[$content]);
 }
 
 function O($oStr, $content = []) {
@@ -104,25 +107,46 @@ function expandFns($str, $content = []) {
   $parts = explode('.',$str);
   $last = array_pop($parts);
 
-  /* if (oHas($last,'$')) return expandVars($last, $content); */
+  if (oHas($last,'$')) $last = expandVars($last, $content);
+  
+  if(is_callable($last)) {
+    if (count($parts) > 0)
+      return call_user_func($last,expandFns(implode('.',$parts),$content));
+    else return call_user_func($last);
+  } else return $last;
 
-  if (count($parts) > 0)
-    return call_user_func($last,expandFns(implode('.',$parts)));
-  else return call_user_func($last);
 }
 
 function expandVars($str, $content = []) {
-  if (($str) == '$$') return $content[0];
-  else $key = str_replace('$','',$str);
+  if (oHas($str,'$')) {
+    preg_match_all('/\$([^\$]*)\$/',$str, $f);
+    /* var_dump($f); */
+    for($i=0; $i<count($f)-1; $i++)
+      $str = str_replace($f[0][$i],
+        (string)getContent($f[1][$i],$content)
+        ,$str);
+    return $str;
+    
+  } else return $str;
 
+
+}
+
+function getContent($key,$content=[]) {
+  if ($key == '') return $content[0];
+  
   try {
-    return '';
-    /* return $content[$key]; */
+    return get_object_vars($content[0])[$key];
   } catch (Exception $e) {
+    throw $e;
+    try {
+    } catch (Exception $e) {
+      return (string) $content[$key];
+      throw $e;
+      return '';
+    }
     return '';
-    /* return get_object_vars($content)[$key]; */
   }
-  return '';
 }
 
 function parseParentheses($str) {
@@ -170,7 +194,7 @@ function inParen($str) {
 
 function parseNest($str,$c) {
   if(oHas($str,'%')) return parseNest(oFuncPrime($str,$c),$c);
-  if(oHas($str,'$$')) return parseNest(oFuncPrime($str,$c),$c);
+  if(oHas($str,'$')) return parseNest(expandVars($str,$c),$c);
   switch (firstOf(['(','>','+'],$str)) {
   case '(': 
     if(oHas(pre($str,'('),'%')) return parseNest(oFuncPrime( pre($str,'('),$c),$c);

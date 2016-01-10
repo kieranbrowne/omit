@@ -6,13 +6,18 @@
 </head>
 <body>
   <?
-  include 'omit.php';
-  function getPageName() { return 'My Blog'; }
-  function get_permalink($id) { 'http://google.com'; }
+  $exampleObj = new stdClass;
+  $exampleObj->ID = 12;
+  $exampleObj->title = 'Hamlet';
 
-  echo O('h2{%getPageName.strtoupper%}');
+  include 'omit.php';
+  function getPageName() { return 'Lorem Ipsum'; }
+  function get_permalink($id) { return 'http://google.com'; }
+
+  echo O('h3{%getPageName.strtoupper.strtolower%}');
   echo O('h2{%getPageName.strtoupper.str_shuffle%}');
   echo O('div>h2{$$}',getPageName());
+  echo O('div>h2.$ID$#$title${%$ID$.strtoupper.get_permalink%}',$exampleObj);
 
   /* $postbox = ofn('a[href=%$ID$.get_permalink%]>h2{$$}'); */
 

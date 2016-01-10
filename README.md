@@ -2,91 +2,57 @@
 
 *write less php*
 
+Use [Emmet syntax](http://docs.emmet.io/abbreviations/syntax/) to program the web in a functional, composable and highly succinct syntax.
+
 ```php
 include 'omit.php'; 
 
-$content1 = ['this','that','the other'];
 
-omit('div#wrapper>span>h1{This is my Title}+h2{not bad eh}+ul.list>li.item$', $content1);
+O('div#wrapper>span>h1{This is my Title}');
 ```
 produces:
 ```html
 <div id="wrapper">
   <span>
     <h1>This is my Title</h1>
-    <h2>not bad eh</h2>
-    <ul class="list">
-      <li class="item">this</li>
-      <li class="item">that</li>
-      <li class="item">the other</li>
-    </ul>
   </span>
 </div>
 ```
 
-###Supports functions over data
+### Pass In Variables 
 ```php
-$content2 = [
-  ['title' => 'Github', 'url' => 'www.github.com'],
-  ['title' => 'Stack Overflow', 'url' => 'www.stackoverflow.com']];
+$content = ['title' => 'Github', 'url' => 'www.github.com']
 
-function getUrl($item) { return $item['url']; }
-function getTitle($item) { return $item['title']; }
-
-omit('div.urls>ul>(li>a[href=|getUrl|]|getTitle|)',$content2);
+omit('div.urls>ul>(li>a[href=$url$]{$title$})',$content);
 ```
 produces:
 ```html
 <div class="urls">
   <ul>
     <li>
-      <a class="github" href="http://www.github.com">Github</a>
+      <a href="http://www.github.com">Github</a>
     </li>
     <li>
-      <a class="stackoverflow" href="http://www.stackoverflow.com">Stack Overflow</a>
+      <a href="http://www.stackoverflow.com">Stack Overflow</a>
     </li>
   </ul>
 </div>
 ```
 
+### Use all the functions you know and love 
+*Simply write your function names between two `%`.*
+```php
+omit('div{%get_page_title%',$content);
+```
+Functions can be chained with `.` notation.
+```php
+omit('div{%get_page_title.strtoupper%',$content);
+```
+They can also be chained to your content variables.
+```php
+omit('div{%$title$.strtoupper%',$content);
+```
+
 ###Syntax 
 Omit uses a variation on [Emmet syntax](http://docs.emmet.io/abbreviations/syntax/).
-
-###Injecting Content
-- `$$` is used to inject the content from the given array not for numbering posts.
-```php
-$data = ['this','that','the other'];
-omit('ul>li$$',$data);
-```
-produces:
-```html
-<ul>
-  <li>this</li>
-  <li>that</li>
-  <li>the other</li>
-</ul>
-```
-- Strings between `|` characters are run as functions on the given array. 
-```php
-$data = ['this','that','the other'];
-omit('ul>li|strtoupper|',$data);
-```
-produces:
-```html
-<ul>
-  <li>THIS</li>
-  <li>THAT</li>
-  <li>THE OTHER</li>
-</ul>
-```
-
-###Wordpress Example
-```php
-include 'omit.php'; 
-
-$posts = array_map(function($x) { return $x->ID; }, get_posts(['post_type'=>'news']));
-
-omit('div.widget>h3{My Widget}+ul>(li>a[href=|get_permalink|]|get_the_title|)',$posts);
-```
-
 
