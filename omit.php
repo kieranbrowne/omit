@@ -1,8 +1,5 @@
 <?
 
-error_reporting(-1);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
 $omit_register = [];
 
 function omit($oStr, $content = []) {
@@ -90,7 +87,6 @@ function expandFns($str, $content = []) {
 
 }
 
-ini_set('memory_limit','1M');
 
 function expandVars($str, $content = []) {
   if (oHas($str,'$')) {
