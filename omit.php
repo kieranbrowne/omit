@@ -41,12 +41,17 @@ function oHas($tag,$str) {
 function oGet($str,$start='{',$end='}') {
   return ((strpos($str,str_replace('\\','',$start))!==false)?preg_split('/'.$end.'/',preg_split('/'.$start.'/',$str)[1])[0]:'');}
 
+function oMatch($str,$regex) {
+  preg_match_all($regex,$str,$out);
+  return (sizeof($out)==2?$out[1]:$out[0]);
+}
+
 function oTag($t) { 
   preg_match_all("/\[([^\]]*)\]/", $t, $attrs);
   return array( 
     'name' => preg_split('/[^[:alnum:]]+/', $t)[0], 
     'id' => oGet($t,'#','[^-_a-z-A-Z-0-9]'), 
-    'class' => oGet($t,'\.','[^-_a-z-A-Z-0-9]'), 
+    'class' => implode(' ',oMatch($t,'/\.([-_a-zA-Z0-9]*)/')),
     'attr' => implode(' ',array_map(function($x){return pre($x,'=').'="'.str_replace('}','',str_replace('{','',post($x,'='))).'"';},$attrs[1])), 
     'content' => oGet(preg_replace('/\[([^\]]*)\]/','',$t)), 
   ); 

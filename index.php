@@ -17,7 +17,7 @@
     ['title' => 'Github', 'url' => 'http://www.github.com'],
     ['title' => 'Stack Overflow', 'url' => 'http://www.stackoverflow.com']];
 
-  echo omit('div.urls>ul>%$$.map(li>a[href=$url$]{$title$})%',$content2);
+  echo omit('div.urls.second-class>ul>%$$.map(li>a[href=$url$]{$title$})%',$content2);
 
   $post = ofn('div.this>%$$.map(span{$$ })%');
   echo $post(['this','that']);
