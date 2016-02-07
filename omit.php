@@ -48,8 +48,8 @@ function oTag($t) {
   preg_match_all("/\[([^\]]*)\]/", $t, $attrs);
   return array( 
     'name' => preg_split('/[^[:alnum:]]+/', $t)[0], 
-    'id' => oGet($t,'#','\W'), 
-    'class' => oGet($t,'\.','\W'), 
+    'id' => oGet($t,'#','[^-_a-z-A-Z-0-9]'), 
+    'class' => oGet($t,'\.','[^-_a-z-A-Z-0-9]'), 
     'attr' => implode(' ',array_map(function($x){return pre($x,'=').'="'.str_replace('}','',str_replace('{','',post($x,'='))).'"';},$attrs[1])), 
     'content' => oGet(preg_replace('/\[([^\]]*)\]/','',$t)), 
   ); 
