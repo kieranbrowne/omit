@@ -27,7 +27,9 @@ function ofn($oStr) {
 // register an O function;
 // after this it can be called in any other O function.
 function oReg($oStr,$name) {
-  $omit_register[$name] = ofn($oStr);
+  global $omit_register;
+  /* $omit_register[$name] = ofn($oStr); */
+  $omit_register[$name] = $oStr;
 }
 
 
@@ -56,7 +58,6 @@ function oTag($t) {
 function oFunc($t, $content = []) {
   if (oHas($t,'%')) {
     preg_match('/\%([^\%]+)\%/',$t, $f);
-    /* var_dump($f); */
     return oFunc(str_replace($f[0],
       expandFns($f[1], $content)
       ,$t));
@@ -155,21 +156,29 @@ function match($str,$char) {
 
 
 function parseNest($str,$c) {
+  global $omit_register;
+  /* var_dump(array_keys($omit_register)); */
+  foreach(array_keys($omit_register) as $key) {
+    $str = str_replace($key,$omit_register[$key],$str);
+    /* var_dump($omit_register[$key]); */
+  }
+
   if(oHas($str,'%')) return parseNest(oFunc($str,$c),$c);
   if(oHas($str,'$')) return parseNest(expandVars($str,$c),$c);
+
   switch (firstOf(['(','>','+'],$str)) {
-  case '(': 
-    if(oHas(pre($str,'('),'%')) return parseNest(oFunc( pre($str,'('),$c),$c);
-    return startTag(pre($str,'(')).parseNest(oGet($str,'\('.'\)'),$c).parseNest(substr($str,match($str,'(')+1),$c).endTag(pre($str,'(')); break;
+    case '(': 
+      if(oHas(pre($str,'('),'%')) return parseNest(pre($str,'('),$c);
+      return startTag(pre($str,'(')).parseNest(oGet($str,'\('.'\)'),$c).parseNest(substr($str,match($str,'(')+1),$c).endTag(pre($str,'(')); break;
 
-  case '>': 
-    if(oHas(pre($str,'>'),'%')) return parseNest(oFunc( pre($str,'>'),$c),$c);
-    return startTag(pre($str,'>')).parseNest(post($str,'>'),$c).endTag(pre($str,'>')); break;
+    case '>': 
+      if(oHas(pre($str,'>'),'%')) return parseNest(pre($str,'>'),$c);
+      return startTag(pre($str,'>')).parseNest(post($str,'>'),$c).endTag(pre($str,'>')); break;
 
-  case '+': 
-    if(oHas(pre($str,firstOf(['(','>','+'],substr($str,1))) ,'%')) return parseNest(oFunc(pre($str,firstOf(['(','>','+'],substr($str,1))) ,$c),$c);
-    return startTag(pre($str,firstOf(['(','>','+'],substr($str,1)))).endTag(pre($str,firstOf(['(','>','+'],substr($str,1)))).parseNest(post($str,firstOf(['(','>','+'],substr($str,1))),$c); break;
-  default: return startTag($str).endTag($str); break;
+    case '+': 
+      if(oHas(pre($str,firstOf(['(','>','+'],substr($str,1))) ,'%')) return parseNest(pre($str,firstOf(['(','>','+'],substr($str,1))),$c);
+      return startTag(pre($str,firstOf(['(','>','+'],substr($str,1)))).endTag(pre($str,firstOf(['(','>','+'],substr($str,1)))).parseNest(post($str,firstOf(['(','>','+'],substr($str,1))),$c); break;
+    default: return startTag($str).endTag($str); break;
   }
 }
 

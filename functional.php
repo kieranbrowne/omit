@@ -11,6 +11,7 @@
   <ul>
     <li>[x] map</li>
     <li>[ ] partial</li>
+    <li>[x] function registration</li>
   </ul>
 
   <?
@@ -22,8 +23,10 @@
     /*   return 'Functional Fail'; */
     /* } */
 
-    /* oReg('div>span{Registered Fn}','piece'); */
-    /* echo O('piece'); */
+    oReg('div>span{$$}','piece');
+    echo O('piece','hi there');
+
+    echo O('ul>%$$.map(piece)%',['a','b','c']);
 
     echo O('ul>li{$2$}',['a','b','c']);
     echo O('ul>%$$.map(li{$$})%',['a','b','c']);
