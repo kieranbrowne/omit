@@ -95,10 +95,12 @@ function expandVars($str, $content = []) {
   if (oHas($str,'$')) {
     preg_match_all('/\$([^\$]*)\$/',$str, $f);
     /* var_dump($str); */
-    $str = str_replace($f[0][0], 
-        (string)getContent($f[1][0],$content)
-        ,$str);
-    /* var_dump($str); */
+    for ($i = 0; $i < sizeof($f[0]); $i++) {
+      $str = str_replace($f[0][$i], 
+          (string)getContent($f[1][$i],$content)
+          ,$str);
+      /* var_dump($str); */
+    }
     return $str;
     
   } else return $str;
