@@ -23,13 +23,15 @@
     /*   return 'Functional Fail'; */
     /* } */
 
-    oReg('div>span{$$}','piece');
-    echo O('piece','hi there');
+    /* oReg('div>span{$$}','piece'); */
+    /* echo O('piece','hi there'); */
 
-    echo O('ul>%$$.map(piece)%',['a','b','c']);
+    /* echo O('ul>%$$.map(piece)%',['a','b','c']); */
 
-    echo O('ul>li{$2$}',['a','b','c']);
+    /* echo O('ul>li{$2$}',['a','b','c']); */
+    /* echo O('ul>li{a}+li{b}',['a','b','c']); */
     echo O('ul>%$$.map(li{$$})%',['a','b','c']);
+    /* echo oFunc('ul>%$$.map(li{$$})%',['a','b','c']); */
   ?>
 
 </body>

@@ -1,29 +1,33 @@
-#Omit
+##Omit
 
 *write less php*
 
 Use [Emmet syntax](http://docs.emmet.io/abbreviations/syntax/) to program the web in a functional, composable and highly succinct syntax.
 
 ```php
-include 'omit.php'; 
-
-
-O('div#wrapper>span>h1{This is my Title}');
+echo O('div>span>h1{This is my Title}+p{This is my content}');
 ```
 produces:
 ```html
-<div id="wrapper">
+<div>
   <span>
-    <h1>This is my Title</h1>
+    <h1>
+        This is my Title
+    </h1>
+    <p>
+        This is my content
+    </p>
   </span>
 </div>
 ```
 
-### Pass In Variables 
+##### Pass Variables as an optional second value
 ```php
-$content = ['title' => 'Github', 'url' => 'www.github.com']
+$content = array(
+    array('title' => 'Github', 'url' => 'http://www.github.com')
+    array('title' => 'Stack Overflow', 'url' => 'http://www.stackoverflow.com'));
 
-omit('div.urls>ul>(li>a[href=$url$]{$title$})',$content);
+echo O('div.urls>ul>%$$.map(li>a[href=$url$]{$title$})%',$content2);
 ```
 produces:
 ```html
@@ -39,20 +43,17 @@ produces:
 </div>
 ```
 
-### Use all the functions you know and love 
+##### Functions 
 *Simply write your function names between two `%`.*
 ```php
-omit('div{%get_page_title%',$content);
+O('span{%date%}');
 ```
 Functions can be chained with `.` notation.
 ```php
-omit('div{%get_page_title.strtoupper%',$content);
+O('div{%get_page_title.strtoupper%}');
 ```
 They can also be chained to your content variables.
 ```php
 omit('div{%$title$.strtoupper%',$content);
 ```
-
-###Syntax 
-Omit uses a variation on [Emmet syntax](http://docs.emmet.io/abbreviations/syntax/).
 
