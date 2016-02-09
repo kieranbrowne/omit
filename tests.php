@@ -75,11 +75,14 @@ assert("getTop('(ul>li>span)+div') === '(ul>li>span)+'");
 assert("getTop('(ul>li>span)') === '(ul>li>span)'");
 
 
-/* assert("inParen('(ul>li>span)+div') === '(ul>li>span)'"); */
-/* assert("inParen('div>(ul>li>span)+div') === '(ul>li>span)'"); */
-/* assert("inParen('div>(ul>(li)>span)+div') === '(ul>(li)>span)'"); */
-/* assert("inParen('div>(ul>(li)>span)+(div>div)') === '(ul>(li)>span)'"); */
+assert("inParen('(ul>li>span)+div') === '(ul>li>span)'");
+assert("inParen('div>(ul>li>span)+div') === '(ul>li>span)'");
+assert("inParen('div>(ul>(li)>span)+div') === '(ul>(li)>span)'");
+assert("inParen('div>(ul>(li)>span)+(div>div)') === '(ul>(li)>span)'");
 
+assert("depthSplit('1.2.3','.') === ['1','2','3']");
+assert("depthSplit('1.map(1.2).3','.') === ['1','map(1.2)','3']");
+assert("depthSplit('1.map(1.2).3','.') === ['1','map(1.2)','3']");
 
 // oFunc
 ?>

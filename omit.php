@@ -31,8 +31,13 @@ function oReg($oStr,$name) {
 
 
 function startTag($str,$c) { 
-  if(substr($str,0,1) == '%')
-    return oFunc($str,$c);
+  /* var_dump($str); */
+  $str = oFunc($str,$c);
+  $str = expandVars($str,$c);
+  /* var_dump($str); */
+  if(ohas($str,'>') || ohas($str,'+')) {
+    return parseNest($str,$c);
+  }
   return (strlen($str)!==0?'<' . oTag($str)['name'] . (ohas($str,'#')?' id="'.oTag($str)['id'].'"':'') .(ohas($str,'.')?' class="'.oTag($str)['class'].'"':'') .(ohas($str,'[')?' '.oTag($str)['attr']:''). '>'.oTag($str,$c)['content']:'');
 }
 
@@ -58,15 +63,16 @@ function oTag($t,$c=[]) {
     'class' => implode(' ',oMatch(preg_replace("/\[([^\]]*)\]/",'',$t),'/\.([-_a-zA-Z0-9]*)/')),
     'attr' => implode(' ',array_map(function($x){return pre($x,'=').'="'.str_replace('}','',str_replace('{','',post($x,'='))).'"';},$attrs[1])), 
     /* 'content' => oGet(preg_replace('/\[([^\]]*)\]/','',$t)), */ 
-    'content' => (oHas($t,'$')?getContentP('',$c):''), 
+    'content' => (oHas($t,'$')?getContentP('',$c):oGet($t)), 
   ); 
 }
 
 function oFunc($t, $content = []) {
   if (oHas($t,'%')) {
-    preg_match('/\%([^\%]+)\%/',$t, $f);
-    return oFunc(str_replace($f[0],
-      maybeJoin(expandFns($f[1], $content))
+    /* preg_match('/\%([^\%]+)\%/',$t, $f); */
+    /* matchFn($t) */
+    return oFunc(str_replace('%'.matchFn($t).'%',
+      maybeJoin(expandFns(matchFn($t), $content))
       ,$t));
   } else return $t;
 }
@@ -78,18 +84,22 @@ function maybeJoin($x) {
 }
 
 function expandFns($str, $content = []) {
-  /* $parts = explode('.',expandVars($str,$content)); */
-  $parts = explode('.',$str);
+  $parts = depthSplit($str,'.');
+  /* var_dump($parts); */
   $last = array_pop($parts);
 
   /* var_dump($last); */
 
   if(oHas($last,'map(')) {
-    $mapstr = oGet($last,'\(','\)');
+    $mapstr = inParen($last);
     /* var_dump($mapstr); */
     /* var_dump(array_map(ofn($mapstr),expandFns(implode('.',$parts),$content))); */
-    if (true) // if string is ostring
-    return implode('',array_map(ofn($mapstr),expandFns(implode('.',$parts),$content)));
+    /* return implode('',array_map(ofn($mapstr),expandFns(implode('.',$parts),$content))); */
+
+    return implode('+',
+      array_map(function($x) use ($mapstr) {
+        return expandVars($mapstr,$x);
+      },$content));
     /* global $omit_register; */
 
     /* if(array_search($mapstr,array_keys($omit_register)) !== false) { */
@@ -190,6 +200,32 @@ function match($str,$char) {
   }
 }
 
+function matchFn($str) {
+  $depth = 0; $out = []; $on = false;
+  foreach (str_split($str) as $s) {
+    if((($on==true) && ($depth == 0)) && ($s == '%')) break;
+    if ($on) array_push($out,$s);
+    if(in_array($s,['(','{','['])) $depth++;
+    if(in_array($s,[')','}',']'])) $depth--;
+    if($s == '%') $on = true;
+  }
+  return implode('',$out);
+}
+function depthSplit($str,$char) {
+  $depth = 0; $group = []; $out = [];
+  foreach (str_split($str) as $s) {
+    /* array_push($group,$s); */
+    if(($depth == 0) && ($s == $char)){
+      if(!empty($group)) array_push($out,implode('',$group));
+      $group = [];
+    } else array_push($group,$s);
+    if(in_array($s,['(','{','['])) $depth++;
+    if(in_array($s,[')','}',']'])) $depth--;
+  }
+  if(!empty($group)) array_push($out,implode('',$group));
+  return $out;
+}
+
 ini_set('memory_limit','1M');
 
 function inParen($str) {
@@ -202,23 +238,24 @@ function getMatchedParen($str) {
 }
 
 function getTop($oStr) {
-  $id = uniqid();
-  //substitue function parts
-  preg_match('/\%([^\%]+)\%/',$oStr, $safe);
-  if(!empty($safe)) $safe = $safe[0]; else $safe = '';
-  $sub = @preg_replace('/\%([^\%]+)\%/',$id,$oStr);
-
   //substitue parentheses
   $id2 = uniqid();
   $save = getMatchedParen($oStr);
-  $sub = str_replace($save,$id2,$sub);
+  $sub = str_replace($save,$id2,$oStr);
+
+
+  //substitue function parts
+  $id = uniqid();
+  preg_match('/\%([^\%]+)\%/',$oStr, $safe);
+  if(!empty($safe)) $safe = $safe[0]; else $safe = '';
+  $sub = @preg_replace('/\%([^\%]+)\%/',$id,$sub);
 
   // get top part
   preg_match('/^.*?[^>+(]+[>+]/',$sub,$toplevel);
   if(!empty($toplevel[0])) {
     $out = $toplevel[0];
-    $out = str_replace($id2,$save,$out);
     $out = str_replace($id,$safe,$out);
+    $out = str_replace($id2,$save,$out);
     return (string) $out;
   } else return (string) $oStr;
 }
@@ -241,9 +278,11 @@ function parseNest($str,$c) {
   $top = getTop($str);
   $rest = substr($str,strlen($top));
   $splitter = substr($top,-1);
+  /* var_dump($top,$splitter,$rest); */
+  if($splitter == '>' || $splitter == '+')
+    $top = substr(getTop($str),0,-1);
   /* $top = expandVars(oFunc(getTop($str),$c),$c); */
   /* $top = oFunc(getTop($str),$c); */
-  /* var_dump($rest); */
 
   /* switch (firstOf(['>','+'],$top)) { */
   switch ($splitter) {
@@ -252,7 +291,7 @@ function parseNest($str,$c) {
       return startTag($top,$c).parseNest($rest,$c).endTag($top,$c); break;
 
     case '+': 
-      return startTag(pre($top,'+'),$c).endTag(pre($top,'+'),$c).parseNest($rest,$c); break;
+      return startTag($top,$c).endTag($top,$c).parseNest($rest,$c); break;
 
     default: return startTag($top,$c).endTag($top,$c); break;
   }

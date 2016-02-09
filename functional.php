@@ -28,10 +28,10 @@
 
     /* echo O('ul>%$$.map(piece)%',['a','b','c']); */
 
-    /* echo O('ul>li{$2$}',['a','b','c']); */
-    /* echo O('ul>li{a}+li{b}',['a','b','c']); */
+    echo O('ul>li{$2$}',['a','b','c']);
+    echo O('ul>li{hi}+li{there}');
     echo O('ul>%$$.map(li{$$})%',['a','b','c']);
-    /* echo oFunc('ul>%$$.map(li{$$})%',['a','b','c']); */
+    echo oFunc('%$$.map(li{$$})%',['a','b','c']);
   ?>
 
 </body>
