@@ -89,4 +89,6 @@ assert("getMatchedParen('div>(ul>(li)>span)+(div>div)') === '(ul>(li)>span)'");
 /* assert("depthSplit('1.map(1.2).3','.') === ['1','map(1.2)','3']"); */
 /* assert("depthSplit('1.map(1.2).3','.') === ['1','map(1.2)','3']"); */
 
+var_dump(O('div.grid.guts>(div.span-3>h1{Get Content})+(div.span-9>h2{sup brah!})'));
+
 ?>

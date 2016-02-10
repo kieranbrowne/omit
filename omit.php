@@ -41,7 +41,13 @@ function startTag($str,$c) {
   return (strlen($str)!==0?'<' . oTag($str)['name'] . (ohas($str,'#')?' id="'.oTag($str)['id'].'"':'') .(ohas($str,'.')?' class="'.oTag($str)['class'].'"':'') .(ohas($str,'[')?' '.oTag($str)['attr']:''). '>'.oTag($str,$c)['content']:'');
 }
 
-function endTag($str,$c) { return '</' . oTag($str)['name'] . '>'; }
+function endTag($str,$c) { 
+  $str = oFunc($str,$c);
+  $str = expandVars($str,$c);
+  if(depthBool(function($x){return $x=='>' || $x=='+';},$str))
+    return ''; // return blank so tags dont get closed early
+  else return '</' . oTag($str)['name'] . '>'; 
+}
 
 function oHas($tag,$str) { 
   if(!is_string($tag)) return false;
@@ -279,7 +285,8 @@ function parseNest($str,$c) {
     $top = substr(getTop($str),0,-1);
 
   if(substr($top,0,1) == '(') $top = inparen($top);
-  /* var_dump($top,$splitter,$rest,'<br><br>'); */
+
+  var_dump($top,$splitter,$rest,'<br><br>');
 
   switch ($splitter) {
 
