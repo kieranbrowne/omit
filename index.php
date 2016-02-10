@@ -15,11 +15,12 @@
 
   $content2 = [
     ['title' => 'Github', 'url' => 'http://www.github.com'],
+    ['title' => 'Div>Span', 'url' => 'div>span'],
     ['title' => 'Stack Overflow', 'url' => 'http://www.stackoverflow.com']];
 
   /* // single line */ 
-  echo oFunc('%$$.map(li>a.%$title$.strtolower%[href=$url$]{$title$})%',$content2);
-  echo omit('div.urls.second-class>ul>%$$.map(li>a.%$title$.strtolower%[href=$url$]{$title$})%',$content2);
+  echo oFunc('%$$.map(li>a[href=$url$]{$title$})%',$content2);
+  echo omit('div.urls.second-class>ul>%$$.map(li>a[href=$url$]{$title$})%',$content2);
 
   /* // split out */
   /* oReg('li>a.%$title$.strtolower%[href=$url$]{$title$}','sitelink'); */

@@ -38,16 +38,19 @@ include 'omit.php';
 
 /* var_dump(getContent('0',['test'])); */
 
+var_dump(omit('(div>li)'));
+
+
+
+assert('depthBool(function($x){return $x==">" || $x=="+";},"a[href=>]{>}+")  === true');
 
 /* var_dump(expandFns(expandVars('$$.strtoupper','test'),'test')); */
 /* var_dump(expandVars('$$.strtoupper','test')); */
 /* var_dump(expandFns('$$.strtoupper','test')); */
 
 // oFunc
-/* var_dump(oFunc('%test%',['a','b','c'])); */
 /* assert('array_map(ofn("li{$$}"),["a","b"]) === "<li>a</li><li>b</li>"'); */
 /* var_dump(oFunc('%$$%',['a','b','c'])); */
-var_dump(expandFns('$$.map(li{$$})',['a','b','c']));
 /* var_dump(['a','b','c']); */
 assert("oFunc('%test.strtoupper%') === 'TEST'");
 assert("oFunc('%test.strtoupper.strtolower%') === 'test'");
@@ -70,19 +73,20 @@ assert("getTop('div>li') === 'div>'");
 assert("getTop('li+li+li') === 'li+'");
 assert("getTop('div.%abc%+span') === 'div.%abc%+'");
 assert("getTop('div') === 'div'");
+/* var_dump(oFunc('%test%',['a','b','c'])); */
 assert("getTop('(ul>li>span)+div') === '(ul>li>span)+'");
 assert("getTop('(ul>li>span)+div') === '(ul>li>span)+'");
 assert("getTop('(ul>li>span)') === '(ul>li>span)'");
 
 
-assert("inParen('(ul>li>span)+div') === '(ul>li>span)'");
-assert("inParen('div>(ul>li>span)+div') === '(ul>li>span)'");
-assert("inParen('div>(ul>(li)>span)+div') === '(ul>(li)>span)'");
-assert("inParen('div>(ul>(li)>span)+(div>div)') === '(ul>(li)>span)'");
+var_dump(getMatchedParen('(ul>li>span)+div','('));
+assert("getMatchedParen('(ul>li>span)+div','(') === '(ul>li>span)'");
+assert("getMatchedParen('div>(ul>li>span)+div') === '(ul>li>span)'");
+assert("getMatchedParen('div>(ul>(li)>span)+div') === '(ul>(li)>span)'");
+assert("getMatchedParen('div>(ul>(li)>span)+(div>div)') === '(ul>(li)>span)'");
 
-assert("depthSplit('1.2.3','.') === ['1','2','3']");
-assert("depthSplit('1.map(1.2).3','.') === ['1','map(1.2)','3']");
-assert("depthSplit('1.map(1.2).3','.') === ['1','map(1.2)','3']");
+/* assert("depthSplit('1.2.3','.') === ['1','2','3']"); */
+/* assert("depthSplit('1.map(1.2).3','.') === ['1','map(1.2)','3']"); */
+/* assert("depthSplit('1.map(1.2).3','.') === ['1','map(1.2)','3']"); */
 
-// oFunc
 ?>

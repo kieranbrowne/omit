@@ -35,7 +35,7 @@ function startTag($str,$c) {
   $str = oFunc($str,$c);
   $str = expandVars($str,$c);
   /* var_dump($str); */
-  if(ohas($str,'>') || ohas($str,'+')) {
+  if(depthBool(function($x){return $x=='>' || $x=='+';},$str)) {
     return parseNest($str,$c);
   }
   return (strlen($str)!==0?'<' . oTag($str)['name'] . (ohas($str,'#')?' id="'.oTag($str)['id'].'"':'') .(ohas($str,'.')?' class="'.oTag($str)['class'].'"':'') .(ohas($str,'[')?' '.oTag($str)['attr']:''). '>'.oTag($str,$c)['content']:'');
@@ -62,8 +62,8 @@ function oTag($t,$c=[]) {
     'id' => oGet($t,'#','[^-_a-z-A-Z-0-9]'), 
     'class' => implode(' ',oMatch(preg_replace("/\[([^\]]*)\]/",'',$t),'/\.([-_a-zA-Z0-9]*)/')),
     'attr' => implode(' ',array_map(function($x){return pre($x,'=').'="'.str_replace('}','',str_replace('{','',post($x,'='))).'"';},$attrs[1])), 
-    /* 'content' => oGet(preg_replace('/\[([^\]]*)\]/','',$t)), */ 
-    'content' => (oHas($t,'$')?getContentP('',$c):oGet($t)), 
+    'content' => oGet(preg_replace('/\[([^\]]*)\]/','',$t)), 
+    /* 'content' => (oHas($t,'$')?getContent('',$c):oGet($t)), */ 
   ); 
 }
 
@@ -96,10 +96,10 @@ function expandFns($str, $content = []) {
     /* var_dump(array_map(ofn($mapstr),expandFns(implode('.',$parts),$content))); */
     /* return implode('',array_map(ofn($mapstr),expandFns(implode('.',$parts),$content))); */
 
-    return implode('+',
+    return '('.implode(')+(',
       array_map(function($x) use ($mapstr) {
         return expandVars($mapstr,$x);
-      },$content));
+      },$content)).')';
     /* global $omit_register; */
 
     /* if(array_search($mapstr,array_keys($omit_register)) !== false) { */
@@ -119,9 +119,9 @@ function expandFns($str, $content = []) {
   /* var_dump($last); */
 
   if (oHas($last,'$')){ 
-    return getContentP(oGet($last,'\$','\$'),$content);
+    return getContent(oGet($last,'\$','\$'),$content);
     /* return $last; */
-    /* var_dump(getContentP('',$content)); */
+    /* var_dump(getContent('',$content)); */
     /* if(is_array($last)) return implode('+',$last); */
     /* if(empty($parts) && is_array($last)) return implode('+',$last); */
   }
@@ -152,7 +152,7 @@ function expandVars($str, $content = []) {
   
   else return $str;
 }
-function getContentP($key,$content) {
+function getContent($key,$content) {
   if ($key == ''){
     return $content;
   } else if (array_search($key,array_keys($content)) !== false) {
@@ -163,18 +163,8 @@ function getContentP($key,$content) {
   }
 }
 
-function getContent($key,$content=[]) {
-  /* if ($key == '') return $content[0]; */
-  if (($key == '') && is_string($content)){
-    return $content;
-  }
-  if (($key == '') && is_array($content)){
-    return $content;
-  }
-  if(array_search($key,array_keys($content)) !== false) {
-    return $content[$key];
-  }
-}
+
+
 
 function mapIndexes($list,$str) {
   return array_combine($list,array_map(function($sub) use ($str) { return strpos($str,$sub);},$list)); }
@@ -226,23 +216,42 @@ function depthSplit($str,$char) {
   return $out;
 }
 
+function depthBool($fn,$str) {
+  $depth = 0;
+  foreach (str_split($str) as $s){
+    if($depth == 0 && $fn($s)) return true;
+    if(in_array($s,['(','{','['])) $depth++;
+    if(in_array($s,[')','}',']'])) $depth--;
+  }
+  return false;
+}
+
 ini_set('memory_limit','1M');
 
 function inParen($str) {
     return ((oHas($str,'(')&&oHas($str,')'))?substr($str,strpos($str,'(')+1,match($str,'(')-strpos($str,'(')-1):$str); }
 
-function getMatchedParen($str) {
-  if(oHas($str,'('))
-    return ((oHas($str,'(')&&oHas($str,')'))?substr($str,strpos($str,'('),match($str,'(')-strpos($str,'(')+1):$str);
+function getMatchedParen($str,$type = '(') {
+  if(oHas($str,$type))
+    return ((oHas($str,$type)&&oHas($str,flip($type)))?substr($str,strpos($str,$type),match($str,$type)-strpos($str,$type)+1):$str);
   else return '';
 }
 
 function getTop($oStr) {
   //substitue parentheses
   $id2 = uniqid();
-  $save = getMatchedParen($oStr);
-  $sub = str_replace($save,$id2,$oStr);
+  $save2 = getMatchedParen($oStr);
+  $sub = str_replace($save2,$id2,$oStr);
 
+  //substitue curly braces
+  $id3 = uniqid();
+  $save3 = getMatchedParen($sub,'{');
+  $sub = str_replace($save3,$id3,$sub);
+
+  //substitue braces
+  $id4 = uniqid();
+  $save4 = getMatchedParen($oStr,'[');
+  $sub = str_replace($save4,$id4,$sub);
 
   //substitue function parts
   $id = uniqid();
@@ -255,36 +264,23 @@ function getTop($oStr) {
   if(!empty($toplevel[0])) {
     $out = $toplevel[0];
     $out = str_replace($id,$safe,$out);
-    $out = str_replace($id2,$save,$out);
+    $out = str_replace($id4,$save4,$out);
+    $out = str_replace($id3,$save3,$out);
+    $out = str_replace($id2,$save2,$out);
     return (string) $out;
   } else return (string) $oStr;
 }
 
 function parseNest($str,$c) {
-  /* var_dump(getTop($str)); */
-
-  /* if(!empty($toplevel) && is_string($toplevel[0])) */
-  /*   $str = preg_replace('/^.*?[^>+(]+/',oFunc($toplevel[0],$c),$str); */
-  /* if(oHas($str,'%')) return parseNest(oFunc($str,$c),$c); */
-  /* if(oHas($str,'$')) return parseNest(expandVars($str,$c),$c); */
-
-  /* global $omit_register; */
-  /* var_dump(array_keys($omit_register)); */
-  /* foreach(array_keys($omit_register) as $key) { */
-  /*   $str = str_replace($key,$omit_register[$key],$str); */
-  /*   /1* var_dump($omit_register[$key]); *1/ */
-  /* } */
-  /* $top = expandVars(oFunc(getTop($str),$c),$c); */
   $top = getTop($str);
   $rest = substr($str,strlen($top));
   $splitter = substr($top,-1);
-  /* var_dump($top,$splitter,$rest); */
   if($splitter == '>' || $splitter == '+')
     $top = substr(getTop($str),0,-1);
-  /* $top = expandVars(oFunc(getTop($str),$c),$c); */
-  /* $top = oFunc(getTop($str),$c); */
 
-  /* switch (firstOf(['>','+'],$top)) { */
+  if(substr($top,0,1) == '(') $top = inparen($top);
+  /* var_dump($top,$splitter,$rest,'<br><br>'); */
+
   switch ($splitter) {
 
     case '>': 
