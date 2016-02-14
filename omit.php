@@ -25,12 +25,13 @@ function ofn($oStr) {
 // after this it can be called in any other O function.
 function oReg($oStr,$name) {
   global $omit_register;
-  $omit_register[$name] = ofn($oStr);
+  $omit_register[$name] = $oStr;
   /* $omit_register[$name] = $oStr; */
 }
 
 
 function startTag($str,$c) { 
+  $str = oRegGet($str);
   $str = oFunc($str,$c);
   $str = expandVars($str,$c);
   if(depthBool(function($x){return $x=='>' || $x=='+';},$str)) {
@@ -40,6 +41,7 @@ function startTag($str,$c) {
 }
 
 function endTag($str,$c) { 
+  $str = oRegGet($str);
   $str = oFunc($str,$c);
   $str = expandVars($str,$c);
   if(depthBool(function($x){return $x=='>' || $x=='+';},$str))
@@ -221,7 +223,7 @@ function depthBool($fn,$str) {
   return false;
 }
 
-ini_set('memory_limit','1M');
+ini_set('memory_limit','10M');
 
 function inParen($str) {
     return ((oHas($str,'(')&&oHas($str,')'))?substr($str,strpos($str,'(')+1,match($str,'(')-strpos($str,'(')-1):$str); }
@@ -264,6 +266,17 @@ function getTop($oStr) {
     $out = str_replace($id2,$save2,$out);
     return (string) $out;
   } else return (string) $oStr;
+}
+
+function oRegGet($tag) {
+  global $omit_register;
+  foreach(array_keys($omit_register) as $key) {
+    if(array_key_exists($key,$omit_register)) {
+      $reg = $omit_register[$key];
+      $tag = str_replace($key,$reg,$tag);
+    }
+  }
+  return $tag;
 }
 
 function parseNest($str,$c) {

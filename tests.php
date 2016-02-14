@@ -39,9 +39,9 @@ include 'omit.php';
 /* var_dump(getContent('0',['test'])); */
 
 
-echo expandFns('$$.strtoupper',"test");
-echo oFunc('ul>li{%$$.strtoupper%}',"test");
 
+oReg('li{$$}','test');
+echo O('ul>%$$.map(test)%',[1,2,3]);
 echo '<br>';
 
 assert('depthBool(function($x){return $x==">" || $x=="+";},"a[href=>]{>}+")  === true');
