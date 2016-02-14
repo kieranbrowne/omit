@@ -38,9 +38,11 @@ include 'omit.php';
 
 /* var_dump(getContent('0',['test'])); */
 
-var_dump(omit('(div>li)'));
 
+echo expandFns('$$.strtoupper',"test");
+echo oFunc('ul>li{%$$.strtoupper%}',"test");
 
+echo '<br>';
 
 assert('depthBool(function($x){return $x==">" || $x=="+";},"a[href=>]{>}+")  === true');
 
@@ -79,7 +81,7 @@ assert("getTop('(ul>li>span)+div') === '(ul>li>span)+'");
 assert("getTop('(ul>li>span)') === '(ul>li>span)'");
 
 
-var_dump(getMatchedParen('(ul>li>span)+div','('));
+/* var_dump(getMatchedParen('(ul>li>span)+div','(')); */
 assert("getMatchedParen('(ul>li>span)+div','(') === '(ul>li>span)'");
 assert("getMatchedParen('div>(ul>li>span)+div') === '(ul>li>span)'");
 assert("getMatchedParen('div>(ul>(li)>span)+div') === '(ul>(li)>span)'");
@@ -89,6 +91,6 @@ assert("getMatchedParen('div>(ul>(li)>span)+(div>div)') === '(ul>(li)>span)'");
 /* assert("depthSplit('1.map(1.2).3','.') === ['1','map(1.2)','3']"); */
 /* assert("depthSplit('1.map(1.2).3','.') === ['1','map(1.2)','3']"); */
 
-var_dump(O('div.grid.guts>(div.span-3>h1{Get Content})+(div.span-9>h2{sup brah!})'));
+/* var_dump(O('div.grid.guts>(div.span-3>h1{Get Content})+(div.span-9>h2{sup brah!})')); */
 
 ?>

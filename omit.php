@@ -31,10 +31,8 @@ function oReg($oStr,$name) {
 
 
 function startTag($str,$c) { 
-  /* var_dump($str); */
   $str = oFunc($str,$c);
   $str = expandVars($str,$c);
-  /* var_dump($str); */
   if(depthBool(function($x){return $x=='>' || $x=='+';},$str)) {
     return parseNest($str,$c);
   }
@@ -69,6 +67,7 @@ function oTag($t,$c=[]) {
     'class' => implode(' ',oMatch(preg_replace("/\[([^\]]*)\]/",'',$t),'/\.([-_a-zA-Z0-9]*)/')),
     'attr' => implode(' ',array_map(function($x){return pre($x,'=').'="'.str_replace('}','',str_replace('{','',post($x,'='))).'"';},$attrs[1])), 
     'content' => oGet(preg_replace('/\[([^\]]*)\]/','',$t)), 
+    /* 'content' => 'test', */
     /* 'content' => (oHas($t,'$')?getContent('',$c):oGet($t)), */ 
   ); 
 }
@@ -78,7 +77,7 @@ function oFunc($t, $content = []) {
     /* preg_match('/\%([^\%]+)\%/',$t, $f); */
     /* matchFn($t) */
     return oFunc(str_replace('%'.matchFn($t).'%',
-      maybeJoin(expandFns(matchFn($t), $content))
+      expandFns(matchFn($t), $content)
       ,$t));
   } else return $t;
 }
@@ -91,15 +90,10 @@ function maybeJoin($x) {
 
 function expandFns($str, $content = []) {
   $parts = depthSplit($str,'.');
-  /* var_dump($parts); */
   $last = array_pop($parts);
-
-  /* var_dump($last); */
 
   if(oHas($last,'map(')) {
     $mapstr = inParen($last);
-    /* var_dump($mapstr); */
-    /* var_dump(array_map(ofn($mapstr),expandFns(implode('.',$parts),$content))); */
     /* return implode('',array_map(ofn($mapstr),expandFns(implode('.',$parts),$content))); */
 
     return '('.implode(')+(',
@@ -121,21 +115,16 @@ function expandFns($str, $content = []) {
     /*       $content)); */
     /* } */
   }
-  /* var_dump('got through'); */
-  /* var_dump($last); */
 
   if (oHas($last,'$')){ 
     return getContent(oGet($last,'\$','\$'),$content);
     /* return $last; */
-    /* var_dump(getContent('',$content)); */
     /* if(is_array($last)) return implode('+',$last); */
     /* if(empty($parts) && is_array($last)) return implode('+',$last); */
   }
 
 
   if(is_callable($last)) {
-    /* var_dump($last); */
-    /* var_dump(call_user_func($last,implode('.',$parts))); */
     if (count($parts) > 0)
       return call_user_func($last,expandFns(implode('.',$parts),$content));
     else return call_user_func($last);
@@ -203,7 +192,7 @@ function matchFn($str) {
     if ($on) array_push($out,$s);
     if(in_array($s,['(','{','['])) $depth++;
     if(in_array($s,[')','}',']'])) $depth--;
-    if($s == '%') $on = true;
+    if($s == '%' && $on ==false) {$on = true; $depth = 0;}
   }
   return implode('',$out);
 }
@@ -286,7 +275,7 @@ function parseNest($str,$c) {
 
   if(substr($top,0,1) == '(') $top = inparen($top);
 
-  var_dump($top,$splitter,$rest,'<br><br>');
+  /* var_dump($top,$splitter,$rest,'<br><br>'); */
 
   switch ($splitter) {
 

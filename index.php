@@ -28,6 +28,11 @@
 
   $post = ofn('div.this>%$$.map(span{$$ })%');
   echo $post(['this','that']);
+
+  function get_permalink($x) {
+    return "permalink";
+  }
+  echo omit('div.urls.second-class>ul{%$0$.get_permalink%}',$content2);
 ?>
   
 </body>
