@@ -3,7 +3,7 @@
 $omit_register = [];
 
 function omit($oStr, $content = []) {
-  return parseNest($oStr,$content);
+  return parseNest($oStr,$content = &$content);
   if(!is_object($content))
     return parseNest($oStr,(array) $content);
   else 
@@ -141,7 +141,7 @@ function expandVars($str, $content = []) {
     preg_match_all('/\$([^\$]*)\$/',$str, $f);
     for ($i = 0; $i < sizeof($f[0]); $i++) {
       $str = str_replace($f[0][$i], 
-          getContent($f[1][$i],$content)
+          getContent($f[1][$i],$content = &$content)
           ,$str);
     }
     return $str;
@@ -293,12 +293,12 @@ function parseNest($str,$c) {
   switch ($splitter) {
 
     case '>': 
-      return startTag($top,$c).parseNest($rest,$c).endTag($top,$c); break;
+      return startTag($top,$c = &$c).parseNest($rest,$c = &$c).endTag($top,$c); break;
 
     case '+': 
-      return startTag($top,$c).endTag($top,$c).parseNest($rest,$c); break;
+      return startTag($top,$c = &$c).endTag($top,$c = &$c).parseNest($rest,$c = &$c); break;
 
-    default: return startTag($top,$c).endTag($top,$c); break;
+    default: return startTag($top,$c = &$c).endTag($top,$c = &$c); break;
   }
 }
 ?>
